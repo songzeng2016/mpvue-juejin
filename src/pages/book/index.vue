@@ -18,7 +18,9 @@
   export default {
     data() {
       return {
-        bookList: []
+        bookList: [],
+        pageNum: 1,
+        loadMore: true
       };
     },
     mounted() {
@@ -26,7 +28,7 @@
     },
     methods: {
       // 获取小册列表
-      getBookList() {
+      getBookList(stopRefresh, pageNum = this.pageNum) {
         const that = this;
         wx.request({
           url: 'https://xiaoce-timeline-api-ms.juejin.im/v1/getListByLastTime',
@@ -35,13 +37,28 @@
             uid: '',
             device_id: '',
             token: '',
-            pageNum: 1
+            pageNum
           },
           success(res) {
             console.log(res.data);
-            that.bookList = res.data.d;
+            stopRefresh && wx.stopPullDownRefresh();  // 停止下拉刷新
+            (res.data.s === 2) && (that.loadMore = false);  // 无更多数据
+            that.bookList = that.bookList.concat(res.data.d);
           }
         });
+      }
+    },
+    // 下拉刷新
+    onPullDownRefresh() {
+      this.loadMore = true;
+      this.pageNum = 1;
+      this.getBookList(true);
+    },
+    // 上拉触底加载更多
+    onReachBottom() {
+      if (this.loadMore) {
+        this.pageNum++;
+        this.getBookList();
       }
     }
   };
@@ -55,6 +72,7 @@
       padding: 15px
       border-bottom: 1px solid #ddd
       .left
+        flex: 1
         display: flex
         align-items: center
         .img
@@ -68,4 +86,11 @@
           height: 91px
           padding: 0 5px
           font-size: 15px
+      .price
+        display: inline-block
+        padding: 5px 10px
+        background: #f1f7fe
+        border-radius: 20px
+        color: #3281ff
+        font-size: 13px
 </style>
