@@ -20,7 +20,7 @@
       return {
         bookList: [],
         pageNum: 1,
-        loadMore: true
+        loadMore: true,
       };
     },
     mounted() {
@@ -29,24 +29,18 @@
     methods: {
       // 获取小册列表
       getBookList(stopRefresh, pageNum = this.pageNum) {
-        const that = this;
-        wx.request({
-          url: 'https://xiaoce-timeline-api-ms.juejin.im/v1/getListByLastTime',
-          data: {
-            src: 'web',
-            uid: '',
-            device_id: '',
-            token: '',
-            pageNum
-          },
-          success(res) {
-            console.log(res.data);
-            stopRefresh && wx.stopPullDownRefresh();  // 停止下拉刷新
-            (res.data.s === 2) && (that.loadMore = false);  // 无更多数据
-            that.bookList = that.bookList.concat(res.data.d);
-          }
+        this.$get('https://xiaoce-timeline-api-ms.juejin.im/v1/getListByLastTime', {
+          src: 'web',
+          uid: '',
+          device_id: '',
+          token: '',
+          pageNum,
+        }).then(json => {
+          stopRefresh && wx.stopPullDownRefresh();  // 停止下拉刷新
+          (json.s === 2) && (this.loadMore = false);  // 无更多数据
+          this.bookList = this.bookList.concat(json.d);
         });
-      }
+      },
     },
     // 下拉刷新
     onPullDownRefresh() {
@@ -60,7 +54,7 @@
         this.pageNum++;
         this.getBookList();
       }
-    }
+    },
   };
 </script>
 
