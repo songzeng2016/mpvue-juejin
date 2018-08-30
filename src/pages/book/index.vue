@@ -6,7 +6,7 @@
         <div class="info">
           <span class="title">{{item.title}}</span>
           <span class="author">{{item.userData.username}}</span>
-          <span class="detail">{{item.lastSectionCount}}小节  {{item.buyCount}}人已购买</span>
+          <span class="detail">{{item.lastSectionCount}}小节 &nbsp;{{item.buyCount}}人已购买</span>
         </div>
       </div>
       <span class="price">￥{{item.price}}</span>
@@ -28,7 +28,7 @@
     },
     methods: {
       // 获取小册列表
-      getBookList(stopRefresh, pageNum = this.pageNum) {
+      getBookList(refresh, pageNum = this.pageNum) {
         this.$get('https://xiaoce-timeline-api-ms.juejin.im/v1/getListByLastTime', {
           src: 'web',
           uid: '',
@@ -36,7 +36,11 @@
           token: '',
           pageNum,
         }).then(json => {
-          stopRefresh && wx.stopPullDownRefresh();  // 停止下拉刷新
+          if (refresh) {
+            wx.stopPullDownRefresh();  // 停止下拉刷新
+            this.bookList = json.d;
+            return;
+          }
           (json.s === 2) && (this.loadMore = false);  // 无更多数据
           this.bookList = this.bookList.concat(json.d);
         });
@@ -72,14 +76,26 @@
         .img
           width: 65px
           height: 91px
+          box-shadow: 3px 3px 8px #ccc
         .info
           flex: 1
           display: flex
           flex-direction: column
           justify-content: space-between
           height: 91px
-          padding: 0 5px
+          padding: 0 10px
           font-size: 15px
+          .title
+            display: -webkit-box
+            -webkit-box-orient: vertical
+            -webkit-line-clamp: 2
+            overflow: hidden
+            font-weight: bold
+          .author
+            font-size: 13px
+          .detail
+            color: #aaaaaa
+            font-size: 11px
       .price
         display: inline-block
         padding: 5px 10px

@@ -4,7 +4,8 @@
     "pages/feidian/main",
     "pages/search/main",
     "pages/book/main",
-    "pages/my/main"
+    "pages/my/main",
+    "pages/article/main"
   ],
   "window": {
     "backgroundTextStyle": "light",

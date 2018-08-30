@@ -1,13 +1,23 @@
 <template>
   <div>
     <ul class="list-wrapper">
-      <li class="list" v-for="(item, index) in dataList" :key="index">
+      <li
+        class="list"
+        v-for="(item, index) in dataList"
+        :key="index"
+        @click="navToArticle(item.objectId)">
         <div class="header">
           <span>
-            <img class="avatar" :src="item.user.avatarLarge" alt="">
+            <img v-if="item.user.avatarLarge" class="avatar" :src="item.user.avatarLarge" alt="">
+            <i v-else class="avatar iconfont icon-avatar"></i>
             <span class="username">{{item.user.username}}</span>
           </span>
-          <span class="tag" v-if="item.tags.length">{{item.tags[0].title}}</span>
+          <span class="tag" v-if="item.tags.length">
+            {{item.tags[0].title}}
+            <template v-if="item.tags[1]">
+              / {{item.tags[1].title}}
+            </template>
+          </span>
         </div>
         <div class="body">
           <div class="info">
@@ -36,35 +46,20 @@
     data() {
       return {
         dataList: [],
+        loadMore: true,
       };
     },
     mounted() {
       this.getDataList();
-
-      const options = {
-        memberNum: 1,
-        // 其他字段
-      };
-      this.setData(options);
-      // 等同于 this.setData({
-      //   memberNum: 1,
-      //   // 其他字段
-      // });
-
-      this.setData({
-        memberNum: 1,
-        // 其他字段
-      });
-
-      let json = {
-        memberNum: 1,
-        // 其他字段
-      };
-      this.setData(json);
+    },
+    computed: {
+      getBeforeTime() {
+        return this.dataList.length ? this.dataList[this.dataList.length - 1].verifyCreatedAt : '';
+      },
     },
     methods: {
       // 获取数据列表
-      getDataList() {
+      getDataList(refresh) {
         this.$get('https://timeline-merger-ms.juejin.im/v1/get_entry_by_timeline', {
           src: 'web',
           uid: '',
@@ -73,11 +68,34 @@
           limit: 20,
           category: 'all',
           recomment: 1,
-          before: '',
+          before: this.getBeforeTime,
         }).then(json => {
-          this.dataList = json.d.entrylist;
+          if (refresh) {
+            wx.stopPullDownRefresh();  // 停止下拉刷新
+            this.dataList = json.d.entrylist;
+            return;
+          }
+          (json.s === 2) && (this.loadMore = false);  // 无更多数据
+          this.dataList = this.dataList.concat(json.d.entrylist);
         });
       },
+      // 跳转到文章页面
+      navToArticle(id) {
+        wx.navigateTo({
+          url: `/pages/article/main?id=${id}`,
+        });
+      },
+    },
+    // 下拉刷新
+    onPullDownRefresh() {
+      this.loadMore = true;
+      this.getDataList(true);
+    },
+    // 上拉触底加载更多
+    onReachBottom() {
+      if (this.loadMore) {
+        this.getDataList();
+      }
     },
   };
 </script>
@@ -101,6 +119,10 @@
           height: 20px
           border-radius: 50%
           margin-right: 5px
+          &.iconfont
+            display: inline-block
+            font-size: 19px
+            color: #aaa
         .tag
           color: #aaa
       .body
@@ -118,7 +140,7 @@
           .content
             margin-top: 7px
             color: #aaa
-            font-size: 13px
+            font-size: 14px
         .screenshot
           width: 75px
           height: 75px
