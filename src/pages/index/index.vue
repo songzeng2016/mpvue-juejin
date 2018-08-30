@@ -1,97 +1,135 @@
 <template>
-  <div class="container" @click="clickHandle('test click', $event)">
-
-    <div class="userinfo" @click="bindViewTap">
-      <img class="userinfo-avatar" v-if="userInfo.avatarUrl" :src="userInfo.avatarUrl" background-size="cover" />
-      <div class="userinfo-nickname">
-        <card :text="userInfo.nickName"></card>
-      </div>
-    </div>
-
-    <div class="usermotto">
-      <div class="user-motto">
-        <card :text="motto"></card>
-      </div>
-    </div>
-
-    <form class="form-container">
-      <input type="text" class="form-control" v-model="motto" placeholder="v-model" />
-      <input type="text" class="form-control" v-model.lazy="motto" placeholder="v-model.lazy" />
-    </form>
+  <div>
+    <ul class="list-wrapper">
+      <li class="list" v-for="(item, index) in dataList" :key="index">
+        <div class="header">
+          <span>
+            <img class="avatar" :src="item.user.avatarLarge" alt="">
+            <span class="username">{{item.user.username}}</span>
+          </span>
+          <span class="tag" v-if="item.tags.length">{{item.tags[0].title}}</span>
+        </div>
+        <div class="body">
+          <div class="info">
+            <p class="title">{{item.title}}</p>
+            <p class="content">{{item.content}}</p>
+          </div>
+          <img class="screenshot" v-if="item.screenshot" :src="item.screenshot" alt="">
+        </div>
+        <div class="footer">
+          <span class="like">
+            <i class="iconfont icon-love"></i>
+            <span>{{item.collectionCount || '喜欢'}}</span>
+          </span>
+          <span class="comment">
+            <i class="iconfont icon-comment"></i>
+            <span>{{item.commentsCount || '评论'}}</span>
+          </span>
+        </div>
+      </li>
+    </ul>
   </div>
 </template>
 
-<script>
-import card from '@/components/card'
-
-export default {
-  data () {
-    return {
-      motto: 'Hello World',
-      userInfo: {}
-    }
-  },
-
-  components: {
-    card
-  },
-
-  methods: {
-    bindViewTap () {
-      const url = '../logs/main'
-      wx.navigateTo({ url })
+<script type="text/ecmascript-6">
+  export default {
+    data() {
+      return {
+        dataList: [],
+      };
     },
-    getUserInfo () {
-      // 调用登录接口
-      wx.login({
-        success: () => {
-          wx.getUserInfo({
-            success: (res) => {
-              this.userInfo = res.userInfo
-            }
-          })
-        }
-      })
-    },
-    clickHandle (msg, ev) {
-      console.log('clickHandle:', msg, ev)
-    }
-  },
+    mounted() {
+      this.getDataList();
 
-  created () {
-    // 调用应用实例的方法获取全局数据
-    this.getUserInfo()
-  }
-}
+      const options = {
+        memberNum: 1,
+        // 其他字段
+      };
+      this.setData(options);
+      // 等同于 this.setData({
+      //   memberNum: 1,
+      //   // 其他字段
+      // });
+
+      this.setData({
+        memberNum: 1,
+        // 其他字段
+      });
+
+      let json = {
+        memberNum: 1,
+        // 其他字段
+      };
+      this.setData(json);
+    },
+    methods: {
+      // 获取数据列表
+      getDataList() {
+        this.$get('https://timeline-merger-ms.juejin.im/v1/get_entry_by_timeline', {
+          src: 'web',
+          uid: '',
+          device_id: undefined,
+          token: undefined,
+          limit: 20,
+          category: 'all',
+          recomment: 1,
+          before: '',
+        }).then(json => {
+          this.dataList = json.d.entrylist;
+        });
+      },
+    },
+  };
 </script>
 
-<style scoped>
-.userinfo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.userinfo-avatar {
-  width: 128rpx;
-  height: 128rpx;
-  margin: 20rpx;
-  border-radius: 50%;
-}
-
-.userinfo-nickname {
-  color: #aaa;
-}
-
-.usermotto {
-  margin-top: 150px;
-}
-
-.form-control {
-  display: block;
-  padding: 0 12px;
-  margin-bottom: 5px;
-  border: 1px solid #ccc;
-}
-
+<style lang="stylus" type="text/stylus" scoped>
+  .list-wrapper
+    background: #f4f6f9
+    .list
+      margin: 10px 0
+      padding: 10px 15px
+      background: #fff
+      .header
+        display: flex
+        justify-content: space-between
+        align-items: center
+        font-size: 14px
+        .avatar, .username
+          vertical-align: middle
+        .avatar
+          width: 20px
+          height: 20px
+          border-radius: 50%
+          margin-right: 5px
+        .tag
+          color: #aaa
+      .body
+        display: flex
+        margin: 12px 0
+        .info
+          flex: 1
+          .title, .content
+            display: -webkit-box
+            -webkit-box-orient: vertical
+            -webkit-line-clamp: 2
+            overflow: hidden
+          .title
+            font-size: 15px
+          .content
+            margin-top: 7px
+            color: #aaa
+            font-size: 13px
+        .screenshot
+          width: 75px
+          height: 75px
+          margin-left: 10px
+      .footer
+        color: #aaa
+        font-size: 13px
+        .like
+          margin-right: 15px
+        .iconfont
+          display: inline
+          margin-right: 5px
+          font-size: 13px
 </style>

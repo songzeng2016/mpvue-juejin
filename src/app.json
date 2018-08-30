@@ -1,11 +1,10 @@
 {
   "pages": [
+    "pages/index/main",
     "pages/feidian/main",
     "pages/search/main",
     "pages/book/main",
-    "pages/my/main",
-    "pages/index/main",
-    "pages/logs/main"
+    "pages/my/main"
   ],
   "window": {
     "backgroundTextStyle": "light",
